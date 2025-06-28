@@ -294,6 +294,7 @@ JSON 형식으로 응답:
         
         return {
             "prompt": prompt,
+            "references": [],  # 캐릭터 생성에는 레퍼런스 불필요
             "analyzed_characters": characters_with_mbti,
             "selected_plot": selected_plot
         }

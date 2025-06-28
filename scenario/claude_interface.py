@@ -104,8 +104,8 @@ class ClaudeInterface:
 
 {prompt_data['prompt']}
 
-레퍼런스 데이터 (사랑과 전쟁에서 랜덤 선택한 {len(prompt_data['references'])}개 에피소드):
-{json.dumps(prompt_data['references'], ensure_ascii=False, indent=2)}
+레퍼런스 데이터 (사랑과 전쟁에서 랜덤 선택한 {len(prompt_data.get('references', []))}개 에피소드):
+{json.dumps(prompt_data.get('references', []), ensure_ascii=False, indent=2) if prompt_data.get('references') else ""}
 
 위 레퍼런스를 참고하여 프롬프트에서 요청한 대로 새로운 이야기를 생성해주세요."""
         
