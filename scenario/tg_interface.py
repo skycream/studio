@@ -475,7 +475,6 @@ class TelegramScenarioBot:
 📊 성격 분석: 
 {char.get('personality_analysis', '')}
 ✨ 특징: {char.get('trait', '')}
-🎬 역할: {char.get('role_in_story', '')}
 
 """
         

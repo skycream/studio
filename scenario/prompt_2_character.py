@@ -209,7 +209,7 @@ class CharacterGen:
 2. 직업은 줄거리와 MBTI에 맞게
 3. 고향은 다양하게 (서울, 부산, 대구, 인천, 광주, 대전, 수원 등)
 4. 각 인물의 핵심 특징을 MBTI 기반으로 작성
-5. MBTI 성격 분석을 줄거리와 연결하여 상세히 설명
+5. MBTI 성격 분석을 성격 특성 중심으로 상세히 설명 (스토리 전개나 행동 예측은 제외)
 
 JSON 형식으로 응답:
 {{
@@ -222,9 +222,8 @@ JSON 형식으로 응답:
             "hometown": "고향",
             "mbti": "MBTI",
             "mbti_description": "MBTI 타입명과 기본 설명",
-            "personality_analysis": "줄거리 속 행동과 연결한 상세 성격 분석 (3-4줄)",
-            "trait": "핵심 특징 (MBTI 반영)",
-            "role_in_story": "줄거리에서의 역할"
+            "personality_analysis": "성격적 특성과 행동 패턴 분석 (3-4줄)",
+            "trait": "핵심 특징 (MBTI 반영)"
         }}
     ]
 }}"""

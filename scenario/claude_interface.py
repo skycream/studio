@@ -181,8 +181,7 @@ class ClaudeInterface:
                                 "mbti": "ISTJ",
                                 "mbti_description": "현실주의자형 - 책임감이 강하고 신뢰할 수 있습니다",
                                 "personality_analysis": "임시 성격 분석입니다.",
-                                "trait": "성실함",
-                                "role_in_story": "주인공"
+                                "trait": "성실함"
                             }
                         ]
                     }
