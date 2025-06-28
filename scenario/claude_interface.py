@@ -128,8 +128,19 @@ class ClaudeInterface:
             
             stdout, stderr = process.communicate(input=claude_command)
             
+            # 디버깅: stdout과 stderr 모두 출력
+            if stderr:
+                print(f"Claude stderr: {stderr}")
+            
             if process.returncode != 0:
-                print(f"Claude Code 실행 오류: {stderr}")
+                print(f"Claude Code 실행 오류 (return code: {process.returncode})")
+                print(f"stderr: {stderr}")
+                print(f"stdout: {stdout[:500]}")
+                return None
+            
+            # 빈 출력 체크
+            if not stdout or stdout.strip() == "":
+                print("Claude가 빈 응답을 반환했습니다.")
                 return None
             
             # 출력에서 JSON 추출 - RobustJSONParser 사용
@@ -142,13 +153,31 @@ class ClaudeInterface:
                 print("전체 출력:")
                 print(stdout[:1000])  # 첫 1000자만 출력
                 
-                # 더미 데이터 반환
-                return {
-                    "stories": [
-                        {"title": f"임시 제목 {i+1}", "plot": f"임시 줄거리 {i+1}"} 
-                        for i in range(self.num_stories)
-                    ]
-                }
+                # 더미 데이터 반환 (stories 또는 characters)
+                if "캐릭터" in claude_command or "character" in claude_command:
+                    return {
+                        "characters": [
+                            {
+                                "name": "영수",
+                                "gender": "남성",
+                                "age": 35,
+                                "job": "회사원",
+                                "hometown": "서울",
+                                "mbti": "ISTJ",
+                                "mbti_description": "현실주의자형 - 책임감이 강하고 신뢰할 수 있습니다",
+                                "personality_analysis": "임시 성격 분석입니다.",
+                                "trait": "성실함",
+                                "role_in_story": "주인공"
+                            }
+                        ]
+                    }
+                else:
+                    return {
+                        "stories": [
+                            {"title": f"임시 제목 {i+1}", "plot": f"임시 줄거리 {i+1}"} 
+                            for i in range(self.num_stories)
+                        ]
+                    }
                 
         except FileNotFoundError:
             print("Claude Code가 설치되어 있지 않습니다.")
