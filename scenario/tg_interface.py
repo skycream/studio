@@ -78,6 +78,13 @@ class TelegramScenarioBot:
         plot_gen = PlotGen(num=len(positions_to_generate))
         prompt_data = plot_gen.generate()
         
+        # 프롬프트 콘솔 출력
+        print("\n" + "="*60)
+        print("[1단계 줄거리 생성 프롬프트]")
+        print("="*60)
+        print(prompt_data['prompt'])
+        print("="*60 + "\n")
+        
         # Claude 실행
         try:
             response = self.claude.execute_prompt(prompt_data)
@@ -422,6 +429,17 @@ class TelegramScenarioBot:
         
         # 분석된 캐릭터 정보 저장
         state['analyzed_characters'] = prompt_data['analyzed_characters']
+        
+        # 프롬프트 콘솔 출력
+        print("\n" + "="*60)
+        print("[2단계 캐릭터 생성 프롬프트]")
+        print("="*60)
+        print(prompt_data['prompt'])
+        print("="*60)
+        print("\n[분석된 캐릭터]")
+        for char in prompt_data['analyzed_characters']:
+            print(f"- {char['name']}: {char['mbti']} ({char['role']})")
+        print("="*60 + "\n")
         
         # Claude 실행
         try:

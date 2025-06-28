@@ -26,6 +26,12 @@ class ClaudeInterface:
         print("\n재생성 중...")
         print("="*60)
         
+        # 프롬프트 출력
+        print("\n[생성된 프롬프트]")
+        print("-" * 60)
+        print(prompt_data['prompt'])
+        print("-" * 60)
+        
         # 추가 랜덤 요소
         import random
         creativity_hints = [
