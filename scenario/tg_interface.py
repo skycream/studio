@@ -479,7 +479,9 @@ class TelegramScenarioBot:
             message += f"""**{i}. {char.get('name', '')}** ({char.get('gender', '')}, {char.get('age', '')}세)
 📍 고향: {char.get('hometown', '')}
 💼 직업: {char.get('job', '')}
-🧩 MBTI: {char.get('mbti', '')}
+🧩 MBTI: {char.get('mbti', '')} - {char.get('mbti_description', '')}
+📊 성격 분석: 
+{char.get('personality_analysis', '')}
 ✨ 특징: {char.get('trait', '')}
 🎬 역할: {char.get('role_in_story', '')}
 
