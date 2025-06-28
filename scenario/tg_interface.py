@@ -152,10 +152,16 @@ class TelegramScenarioBot:
             InlineKeyboardButton("🎭 톤 변경", callback_data="set_tone")
         ])
         
-        # 완료 버튼 (5개 모두 선택 시에만 활성화)
+        # 완료 버튼
         if selected_count >= state['num_stories']:
+            # 5개 모두 선택한 경우
             keyboard.append([
                 InlineKeyboardButton("✅ 완료하고 다음 단계로", callback_data="complete_plot")
+            ])
+        elif selected_count > 0:
+            # 1개 이상 선택한 경우
+            keyboard.append([
+                InlineKeyboardButton(f"⏭️ {selected_count}개만 선택하고 다음 단계로", callback_data="complete_plot")
             ])
         
         # 현재 설정 표시
