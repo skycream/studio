@@ -106,7 +106,12 @@ class ClaudeInterface:
             prompt_data['prompt'] = prompt_data['prompt'].replace("생성해주세요.", f"생성해주세요.{tone_map[self.tone]}")
         
         # Claude Code 명령어 구성
-        claude_command = f"""다음 프롬프트를 실행해주세요:
+        # 캐릭터 생성인 경우 프롬프트만 전달
+        if "캐릭터" in prompt_data['prompt'] or "character" in prompt_data['prompt']:
+            claude_command = prompt_data['prompt']
+        else:
+            # 줄거리 생성인 경우 레퍼런스 포함
+            claude_command = f"""다음 프롬프트를 실행해주세요:
 
 {prompt_data['prompt']}
 
@@ -117,6 +122,16 @@ class ClaudeInterface:
         
         # Claude Code 실행
         try:
+            # 명령어 길이 체크
+            print(f"Claude 명령어 길이: {len(claude_command)} 문자")
+            
+            # 디버깅용: 명령어 첫 부분 출력
+            print(f"명령어 시작: {claude_command[:200]}...")
+            
+            # 프롬프트가 너무 길면 경고
+            if len(claude_command) > 20000:
+                print("경고: 프롬프트가 매우 깁니다.")
+            
             process = subprocess.Popen(
                 ['claude'],
                 stdin=subprocess.PIPE,
