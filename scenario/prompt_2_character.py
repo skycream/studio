@@ -169,169 +169,12 @@ class CharacterGen:
             "현숙": ["INTJ", "ENTJ", "ISTJ"]   # 세련된, 전문직
         }
     
-    def analyze_plot_for_characters(self, plot):
-        """줄거리에서 필요한 캐릭터 추출"""
-        characters = []
-        
-        # 가족 관계 추출
-        family_patterns = {
-            r"시어머니": ("female", "50-60대", "antagonist"),
-            r"며느리": ("female", "30-40대", "protagonist"),
-            r"남편|아내": ("flexible", "30-50대", "support"),
-            r"시누이": ("female", "30-40대", "antagonist"),
-            r"자녀|아이": ("flexible", "10-20대", "victim")
-        }
-        
-        # 직장 관계 추출
-        work_patterns = {
-            r"상사|부장|사장": ("flexible", "40-50대", "antagonist"),
-            r"동료|직원": ("flexible", "30-40대", "support"),
-            r"부하|신입": ("flexible", "20-30대", "victim")
-        }
-        
-        # 불륜 관계 추출
-        affair_patterns = {
-            r"불륜|바람|애인": ("flexible", "30-40대", "catalyst"),
-            r"첫사랑|옛.*사랑": ("flexible", "30-50대", "catalyst")
-        }
-        
-        # 모든 패턴 검색
-        all_patterns = {**family_patterns, **work_patterns, **affair_patterns}
-        
-        for pattern, (gender, age, role) in all_patterns.items():
-            if re.search(pattern, plot):
-                characters.append({
-                    "pattern": pattern,
-                    "gender": gender,
-                    "age_range": age,
-                    "role": role
-                })
-        
-        return characters
-    
-    def infer_mbti_from_behavior(self, plot, character_role):
-        """줄거리와 역할에서 MBTI 추론"""
-        mbti_scores = defaultdict(int)
-        
-        # E/I 추론
-        for word in self.mbti_patterns["E"]:
-            if word in plot:
-                mbti_scores["E"] += 1
-        for word in self.mbti_patterns["I"]:
-            if word in plot:
-                mbti_scores["I"] += 1
-        
-        # S/N 추론
-        for word in self.mbti_patterns["S"]:
-            if word in plot:
-                mbti_scores["S"] += 1
-        for word in self.mbti_patterns["N"]:
-            if word in plot:
-                mbti_scores["N"] += 1
-        
-        # T/F 추론
-        for word in self.mbti_patterns["T"]:
-            if word in plot:
-                mbti_scores["T"] += 1
-        for word in self.mbti_patterns["F"]:
-            if word in plot:
-                mbti_scores["F"] += 1
-        
-        # J/P 추론
-        for word in self.mbti_patterns["J"]:
-            if word in plot:
-                mbti_scores["J"] += 1
-        for word in self.mbti_patterns["P"]:
-            if word in plot:
-                mbti_scores["P"] += 1
-        
-        # 역할별 가중치
-        role_weights = {
-            "protagonist": {"I": 1, "N": 1, "J": 1},
-            "antagonist": {"E": 1, "S": 1, "J": 1},
-            "catalyst": {"E": 1, "N": 1, "P": 1},
-            "support": {"I": 1, "S": 1, "F": 1},
-            "victim": {"I": 1, "F": 1, "P": 1}
-        }
-        
-        if character_role in role_weights:
-            for trait, weight in role_weights[character_role].items():
-                mbti_scores[trait] += weight
-        
-        # MBTI 결정
-        mbti = ""
-        mbti += "E" if mbti_scores["E"] >= mbti_scores["I"] else "I"
-        mbti += "S" if mbti_scores["S"] >= mbti_scores["N"] else "N"
-        mbti += "T" if mbti_scores["T"] >= mbti_scores["F"] else "F"
-        mbti += "J" if mbti_scores["J"] >= mbti_scores["P"] else "P"
-        
-        return mbti, mbti_scores
-    
-    def match_name_to_mbti(self, mbti, gender, used_names):
-        """MBTI에 맞는 나는솔로 이름 매칭"""
-        name_pool = self.male_names if gender == "male" else self.female_names
-        available_names = [n for n in name_pool if n not in used_names]
-        
-        # MBTI 친화도 점수 계산
-        best_name = None
-        best_score = -1
-        
-        for name in available_names:
-            if name in self.name_mbti_affinity:
-                score = 0
-                for preferred_mbti in self.name_mbti_affinity[name]:
-                    # MBTI 유사도 계산 (같은 글자 수)
-                    similarity = sum(1 for a, b in zip(mbti, preferred_mbti) if a == b)
-                    score = max(score, similarity)
-                
-                if score > best_score:
-                    best_score = score
-                    best_name = name
-        
-        # 매칭되는 이름이 없으면 랜덤 선택
-        if not best_name and available_names:
-            import random
-            best_name = random.choice(available_names)
-        
-        return best_name
     
     def generate(self, selected_plot):
         """캐릭터 생성 프롬프트 생성"""
-        import random
-        
         # 줄거리 분석
         plot_text = selected_plot.get('plot', '')
         title = selected_plot.get('title', '')
-        
-        # 필요한 캐릭터 추출
-        required_characters = self.analyze_plot_for_characters(plot_text)
-        
-        # 각 캐릭터의 MBTI 추론
-        characters_with_mbti = []
-        used_names = []
-        
-        for char in required_characters:
-            mbti, scores = self.infer_mbti_from_behavior(plot_text, char['role'])
-            
-            # 성별 결정 (flexible인 경우)
-            if char['gender'] == 'flexible':
-                gender = random.choice(['male', 'female'])
-            else:
-                gender = char['gender']
-            
-            # 이름 매칭
-            name = self.match_name_to_mbti(mbti, gender, used_names)
-            if name:
-                used_names.append(name)
-            
-            characters_with_mbti.append({
-                'name': name,
-                'gender': gender,
-                'age_range': char['age_range'],
-                'role': char['role'],
-                'mbti': mbti,
-                'mbti_scores': dict(scores)
-            })
         
         # 프롬프트 생성
         prompt = f"""선택된 줄거리를 바탕으로 등장인물을 생성해주세요.
@@ -340,38 +183,38 @@ class CharacterGen:
 제목: {title}
 내용: {plot_text}
 
-【분석된 캐릭터 정보】
-"""
-        
-        for i, char in enumerate(characters_with_mbti, 1):
-            prompt += f"\n{i}. {char['name']} ({char['gender']}, {char['age_range']})"
-            prompt += f"\n   역할: {char['role']}"
-            prompt += f"\n   추론된 MBTI: {char['mbti']}"
-            
-            # MBTI 설명 추가
-            mbti_info = self.mbti_descriptions.get(char['mbti'], {})
-            if mbti_info:
-                prompt += f"\n   MBTI 유형: {mbti_info.get('type', '')} - {mbti_info.get('basic', '')}"
-                prompt += f"\n   주요 특성: {', '.join(mbti_info.get('traits', []))}"
-            
-            behavior = self.mbti_behaviors.get(char['mbti'], {})
-            if behavior:
-                prompt += f"\n   예상 행동: {', '.join(list(behavior.get('복수', []))[:2])}"
-        
-        prompt += """
+【작업 지시사항】
+1. 줄거리에 등장하는 모든 인물을 찾아내세요
+2. 각 인물의 나이, 성별, 역할을 줄거리 맥락에서 추론하세요
+3. 각 인물의 행동과 상황을 분석하여 MBTI를 추론하세요
+4. 추론한 MBTI에 맞는 '나는 솔로' 이름을 아래 목록에서 선택하세요:
 
-위 분석을 바탕으로 각 인물의 구체적인 프로필을 생성해주세요:
+【이름 선택 가이드】
+남성: 영수, 영호, 영식, 영철, 광수, 상철
+여성: 영숙, 정숙, 순자, 영자, 옥순, 현숙
 
-1. 나이는 범위 내에서 구체적으로
+※ 중요: 줄거리에 이미 나온 이름(예: 광수, 옥순 등)은 그대로 사용하세요!
+
+【MBTI별 이름 매칭 참고】
+- 영수/영숙: ESTJ, ISTJ, ENTJ (리더형, 책임감)
+- 영호/정숙: ENFP, ESFP, ENTP (활발, 사교적)  
+- 영식/순자: ISFJ, ISFP, INFP (순수, 선량)
+- 영철/영자: ESTP, ISTP, ESTJ (강인함)
+- 광수/옥순: INTJ, ENTJ, ISTJ (엘리트) / ESFP, ENFP (매력적)
+- 상철/현숙: ISFJ, ISTJ, ESFJ (평범) / INTJ, ENTJ (세련됨)
+
+각 인물에 대해 다음을 포함하여 생성하세요:
+
+1. 나이는 구체적으로 (20-60대 범위)
 2. 직업은 줄거리와 MBTI에 맞게
 3. 고향은 다양하게 (서울, 부산, 대구, 인천, 광주, 대전, 수원 등)
 4. 각 인물의 핵심 특징을 MBTI 기반으로 작성
 5. MBTI 성격 분석을 줄거리와 연결하여 상세히 설명
 
 JSON 형식으로 응답:
-{
+{{
     "characters": [
-        {
+        {{
             "name": "이름",
             "gender": "성별",
             "age": 구체적나이,
@@ -382,14 +225,13 @@ JSON 형식으로 응답:
             "personality_analysis": "줄거리 속 행동과 연결한 상세 성격 분석 (3-4줄)",
             "trait": "핵심 특징 (MBTI 반영)",
             "role_in_story": "줄거리에서의 역할"
-        }
+        }}
     ]
-}"""
+}}"""
         
         return {
             "prompt": prompt,
             "references": [],  # 캐릭터 생성에는 레퍼런스 불필요
-            "analyzed_characters": characters_with_mbti,
             "selected_plot": selected_plot
         }
 
@@ -407,6 +249,3 @@ if __name__ == "__main__":
     result = gen.generate(test_plot)
     print("프롬프트:")
     print(result["prompt"])
-    print("\n분석된 캐릭터:")
-    for char in result["analyzed_characters"]:
-        print(f"- {char['name']}: {char['mbti']} ({char['role']})")

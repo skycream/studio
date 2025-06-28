@@ -313,8 +313,7 @@ class TelegramScenarioBot:
             
             character_data = {
                 "plot": state['selected_plot'],
-                "characters": state['current_characters'],
-                "analyzed": state.get('analyzed_characters', [])
+                "characters": state['current_characters']
             }
             
             with open(output_file, 'w', encoding='utf-8') as f:
@@ -427,18 +426,11 @@ class TelegramScenarioBot:
         char_gen = CharacterGen()
         prompt_data = char_gen.generate(selected_plot)
         
-        # 분석된 캐릭터 정보 저장
-        state['analyzed_characters'] = prompt_data['analyzed_characters']
-        
         # 프롬프트 콘솔 출력
         print("\n" + "="*60)
         print("[2단계 캐릭터 생성 프롬프트]")
         print("="*60)
         print(prompt_data['prompt'])
-        print("="*60)
-        print("\n[분석된 캐릭터]")
-        for char in prompt_data['analyzed_characters']:
-            print(f"- {char['name']}: {char['mbti']} ({char['role']})")
         print("="*60 + "\n")
         
         # Claude 실행
