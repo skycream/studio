@@ -171,19 +171,46 @@ class ClaudeInterface:
                 # 더미 데이터 반환 (stories 또는 characters)
                 if "캐릭터" in claude_command or "character" in claude_command:
                     return {
-                        "characters": [
-                            {
-                                "name": "영수",
-                                "gender": "남성",
-                                "age": 35,
-                                "job": "회사원",
-                                "hometown": "서울",
-                                "mbti": "ISTJ",
-                                "mbti_description": "현실주의자형 - 책임감이 강하고 신뢰할 수 있습니다",
-                                "personality_analysis": "임시 성격 분석입니다.",
-                                "trait": "성실함"
-                            }
-                        ]
+                        "characters": {
+                            "영수": [
+                                {
+                                    "version": 1,
+                                    "name": "영수",
+                                    "gender": "남성",
+                                    "age": 35,
+                                    "job": "회사원",
+                                    "hometown": "서울",
+                                    "mbti": "ISTJ",
+                                    "mbti_description": "현실주의자형 - 책임감이 강하고 신뢰할 수 있습니다",
+                                    "personality_analysis": "임시 성격 분석입니다.",
+                                    "trait": "성실함"
+                                },
+                                {
+                                    "version": 2,
+                                    "name": "영수",
+                                    "gender": "남성",
+                                    "age": 40,
+                                    "job": "공무원",
+                                    "hometown": "부산",
+                                    "mbti": "ESTJ",
+                                    "mbti_description": "경영자형 - 리더십이 강합니다",
+                                    "personality_analysis": "임시 성격 분석 2입니다.",
+                                    "trait": "리더십"
+                                },
+                                {
+                                    "version": 3,
+                                    "name": "영수",
+                                    "gender": "남성",
+                                    "age": 38,
+                                    "job": "자영업",
+                                    "hometown": "대구",
+                                    "mbti": "ENTJ",
+                                    "mbti_description": "통솔자형 - 야망이 있습니다",
+                                    "personality_analysis": "임시 성격 분석 3입니다.",
+                                    "trait": "야심"
+                                }
+                            ]
+                        }
                     }
                 else:
                     return {

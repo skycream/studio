@@ -296,8 +296,21 @@ class TelegramScenarioBot:
         elif data == "select_plot_for_character":
             await self.generate_characters(update, context)
         
+        # 캐릭터 버전 선택
+        elif data.startswith("char_"):
+            parts = data.split("_")
+            char_name = parts[1]
+            version = int(parts[2])
+            
+            if 'selected_character_versions' not in state:
+                state['selected_character_versions'] = {}
+            
+            state['selected_character_versions'][char_name] = version
+            await self.show_characters(update, context)
+        
         # 캐릭터 재생성
         elif data == "regenerate_characters":
+            state['selected_character_versions'] = {}  # 선택 초기화
             await self.generate_characters(update, context)
         
         # 다른 줄거리 선택
@@ -306,6 +319,17 @@ class TelegramScenarioBot:
         
         # 캐릭터 확정
         elif data == "confirm_characters":
+            # 선택된 버전의 캐릭터만 추출
+            final_characters = []
+            characters_data = state.get('current_characters', {})
+            selected_versions = state.get('selected_character_versions', {})
+            
+            for char_name, versions in characters_data.items():
+                selected_ver = selected_versions.get(char_name, 1)
+                char = next((v for v in versions if v.get('version') == selected_ver), None)
+                if char:
+                    final_characters.append(char)
+            
             # 캐릭터 저장
             output_dir = f"outputs/user_{user_id}"
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -313,11 +337,13 @@ class TelegramScenarioBot:
             
             character_data = {
                 "plot": state['selected_plot'],
-                "characters": state['current_characters']
+                "characters": final_characters
             }
             
             with open(output_file, 'w', encoding='utf-8') as f:
                 json.dump(character_data, f, ensure_ascii=False, indent=2)
+            
+            state['final_characters'] = final_characters
             
             await query.message.reply_text(
                 "✅ 캐릭터가 확정되었습니다!\n\n"
@@ -454,35 +480,75 @@ class TelegramScenarioBot:
             await update.effective_chat.send_message("캐릭터 생성에 실패했습니다.")
     
     async def show_characters(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """생성된 캐릭터 표시"""
+        """생성된 캐릭터 표시 (인물별 선택 가능)"""
         user_id = update.effective_user.id
         state = self.get_user_state(user_id)
         
-        characters = state.get('current_characters', [])
+        characters_data = state.get('current_characters', {})
         selected_plot = state.get('selected_plot', {})
+        selected_versions = state.get('selected_character_versions', {})
         
-        message = f"""🎭 **생성된 캐릭터**
+        message = f"""🎭 **캐릭터 선택**
 
 📖 줄거리: {selected_plot.get('title', '')}
 
+각 인물별로 마음에 드는 버전을 선택하세요:
+
 """
         
-        for i, char in enumerate(characters, 1):
-            message += f"""**{i}. {char.get('name', '')}** ({char.get('gender', '')}, {char.get('age', '')}세)
+        # 각 인물별로 표시
+        for char_name, versions in characters_data.items():
+            selected_ver = selected_versions.get(char_name, 1)
+            message += f"\n**[{char_name}]** - 선택된 버전: {selected_ver}번\n"
+            
+            for ver in versions:
+                version_num = ver.get('version', 1)
+                check = "✅" if version_num == selected_ver else "⭕"
+                
+                message += f"{check} **{version_num}번**: {ver.get('age')}세, {ver.get('job')}, {ver.get('hometown')}, {ver.get('mbti')}\n"
+            message += "\n"
+        
+        # 선택된 캐릭터 상세 정보 표시
+        message += "---\n**선택된 캐릭터 상세:**\n\n"
+        for char_name, selected_ver in selected_versions.items():
+            if char_name in characters_data:
+                char = next((v for v in characters_data[char_name] if v.get('version') == selected_ver), None)
+                if char:
+                    message += f"""**{char.get('name', '')}** ({char.get('gender', '')}, {char.get('age', '')}세)
 📍 고향: {char.get('hometown', '')}
 💼 직업: {char.get('job', '')}
 🧩 MBTI: {char.get('mbti', '')} - {char.get('mbti_description', '')}
-📊 성격 분석: 
-{char.get('personality_analysis', '')}
+📊 성격 분석: {char.get('personality_analysis', '')}
 ✨ 특징: {char.get('trait', '')}
 
 """
         
-        keyboard = [
-            [InlineKeyboardButton("✅ 확정하고 다음 단계로", callback_data="confirm_characters")],
-            [InlineKeyboardButton("🔄 다시 생성", callback_data="regenerate_characters")],
-            [InlineKeyboardButton("📝 다른 줄거리 선택", callback_data="change_plot")]
-        ]
+        # 인터페이스 버튼 생성
+        keyboard = []
+        
+        # 각 인물별 버전 선택 버튼
+        for char_name in characters_data.keys():
+            row = []
+            for i in range(1, 4):
+                selected = selected_versions.get(char_name, 1) == i
+                btn_text = f"{'✅' if selected else ''}{char_name} {i}번"
+                row.append(InlineKeyboardButton(btn_text, callback_data=f"char_{char_name}_{i}"))
+            keyboard.append(row)
+        
+        # 액션 버튼들
+        keyboard.append([
+            InlineKeyboardButton("🔄 전체 재생성", callback_data="regenerate_characters")
+        ])
+        
+        # 모든 캐릭터가 선택되었는지 확인
+        if len(selected_versions) == len(characters_data):
+            keyboard.append([
+                InlineKeyboardButton("✅ 확정하고 다음 단계로", callback_data="confirm_characters")
+            ])
+        
+        keyboard.append([
+            InlineKeyboardButton("📝 다른 줄거리 선택", callback_data="change_plot")
+        ])
         
         reply_markup = InlineKeyboardMarkup(keyboard)
         
